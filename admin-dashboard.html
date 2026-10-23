@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arcadian - Admin Control Panel</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- EmailJS SDK for Email Notifications -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body class="bg-slate-50 font-sans min-h-screen text-slate-800 flex flex-col">
+
+  <!-- Admin Header -->
+  <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex justify-between items-center">
+      
+      <!-- Brand Logo -->
+      <a href="index.html" class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center text-slate-950 shadow-md">
+          <i class="fa-solid fa-user-shield text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-white">Arcadian</h1>
+          <p class="text-[11px] text-amber-400 font-bold uppercase tracking-wider">Admin Control Panel</p>
+        </div>
+      </a>
+
+      <!-- Navigation & Profile & Admin Actions -->
+      <div id="user-nav" class="flex items-center gap-3">
+        <button id="admin-reset-pwd-btn" class="bg-slate-800 hover:bg-slate-700 text-amber-300 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 border border-slate-700" title="Send reset link to your email">
+          <i class="fa-solid fa-key"></i> Reset Password
+        </button>
+
+        <button id="leave-admin-btn" onclick="handleLeaveAdminRole()" class="bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 border border-amber-500/30">
+          <i class="fa-solid fa-arrow-down-left-and-arrow-up-right-to-center"></i> Leave Admin Role
+        </button>
+
+        <div id="user-profile" class="flex items-center gap-3 border-l border-slate-800 pl-3">
+          <span id="user-email-display" class="text-xs sm:text-sm text-slate-300 font-medium"></span>
+          <button id="logout-btn" class="bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition flex items-center gap-1.5 border border-slate-700">
+            <i class="fa-solid fa-right-from-bracket"></i> Logout
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- Admin Reset Password Alert -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-4 w-full">
+    <div id="admin-reset-alert" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
+  </div>
+
+  <!-- Navigation Tab Bar -->
+  <div class="bg-slate-900 border-b border-slate-800 text-slate-300 text-xs font-bold mt-2">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex gap-2 overflow-x-auto py-2">
+      <button id="tab-btn-catalog" class="admin-tab-btn active bg-indigo-600 text-white px-4 py-2 rounded-xl transition flex items-center gap-2">
+        <i class="fa-solid fa-book-bookmark"></i> Book Catalog & Inventory
+      </button>
+      <button id="tab-btn-borrowing" class="admin-tab-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-xl transition flex items-center gap-2">
+        <i class="fa-solid fa-hand-holding-hand"></i> Borrow Requests & Fines
+      </button>
+      <button id="tab-btn-students" class="admin-tab-btn bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-xl transition flex items-center gap-2">
+        <i class="fa-solid fa-users text-amber-400"></i> Registered Students & Staff
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 py-8 w-full flex-grow">
+    
+    <!-- PAGE 1: Book Catalog & Inventory -->
+    <section id="page-catalog" class="admin-page grid grid-cols-1 lg:grid-cols-3 gap-8">
+      
+      <!-- Left Column: Add / Edit Form + Category Management -->
+      <div class="space-y-6">
+        <div id="book-form-section" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+          <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+            <h2 id="form-title" class="text-base font-bold text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-plus-circle text-indigo-600"></i> Add New Book
+            </h2>
+            <span class="text-[10px] bg-slate-100 text-slate-500 px-2 py-0.5 rounded font-bold uppercase">Inventory</span>
+          </div>
+          
+          <form id="book-form" class="space-y-4">
+            <input type="hidden" id="book-id" />
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Book Title *</label>
+              <input type="text" id="title" required class="w-full px-3.5 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none border-slate-200" placeholder="e.g. Clean Code">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Author *</label>
+              <input type="text" id="author" required class="w-full px-3.5 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none border-slate-200" placeholder="e.g. Robert C. Martin">
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">ISBN</label>
+                <input type="text" id="isbn" class="w-full px-3.5 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none border-slate-200" placeholder="9780132350884">
+              </div>
+              <div>
+                <div class="flex justify-between items-center mb-1">
+                  <label class="block text-xs font-semibold text-slate-600">Category</label>
+                  <button type="button" id="quick-add-cat-btn" class="text-[10px] text-indigo-600 hover:underline font-bold">+ Custom</button>
+                </div>
+                <select id="category" class="w-full px-3 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none border-slate-200">
+                  <option value="General">General</option>
+                  <option value="Technology">Technology</option>
+                  <option value="Fiction">Fiction</option>
+                  <option value="Science">Science</option>
+                  <option value="__ADD_NEW__">+ Add New Category...</option>
+                </select>
+              </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Total Copies *</label>
+                <input type="number" id="copies" min="1" value="1" required class="w-full px-3.5 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none border-slate-200">
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Available Copies *</label>
+                <input type="number" id="available" min="0" value="1" required class="w-full px-3.5 py-2 border rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none border-slate-200">
+              </div>
+            </div>
+            <div class="flex gap-2 pt-2">
+              <button type="submit" id="submit-btn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded-xl shadow-sm transition flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-floppy-disk"></i> Save Book
+              </button>
+              <button type="button" id="cancel-btn" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-semibold px-3 py-2.5 rounded-xl transition">
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+          <h3 class="text-sm font-bold text-slate-800 mb-2">Manage Categories</h3>
+          <div id="category-manager-list" class="space-y-2 max-h-48 overflow-y-auto"></div>
+        </div>
+      </div>
+
+      <!-- Right Column: Inventory Table -->
+      <div class="lg:col-span-2 space-y-6">
+        <div class="grid grid-cols-3 gap-4">
+          <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Total Books</p>
+            <h3 id="total-count" class="text-2xl font-bold text-slate-800 mt-1">0</h3>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Available</p>
+            <h3 id="available-count" class="text-2xl font-bold text-emerald-600 mt-1">0</h3>
+          </div>
+          <div class="bg-white p-4 rounded-xl border border-slate-200/80 shadow-sm">
+            <p class="text-[10px] font-bold uppercase tracking-wider text-slate-400">Borrowed</p>
+            <h3 id="borrowed-count" class="text-2xl font-bold text-amber-600 mt-1">0</h3>
+          </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 space-y-4">
+          <div class="flex justify-between items-center">
+            <h3 class="text-base font-bold text-slate-800">Book Catalog & Inventory</h3>
+            <input type="text" id="search-input" placeholder="Search catalog..." class="px-3 py-1.5 bg-slate-50 border rounded-xl text-xs">
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead>
+                <tr class="bg-slate-50 border-b text-[11px] font-bold text-slate-500 uppercase">
+                  <th class="py-3 px-4">Book Details</th>
+                  <th class="py-3 px-3">Category</th>
+                  <th class="py-3 px-3 text-center">Copies</th>
+                  <th class="py-3 px-4 text-center">Controls</th>
+                </tr>
+              </thead>
+              <tbody id="book-list-tbody" class="divide-y text-xs"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAGE 2: Borrow Requests & Overdue Fines -->
+    <section id="page-borrowing" class="admin-page hidden space-y-8">
+      
+      <!-- Pending Borrow Requests -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+            <i class="fa-solid fa-clock text-amber-500"></i> Pending Borrow Requests
+          </h3>
+          <span id="pending-request-count-badge" class="text-xs bg-amber-50 text-amber-700 px-2.5 py-0.5 rounded-full font-bold">0 Pending</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b text-[11px] font-bold text-slate-500 uppercase">
+                <th class="py-3 px-4">Student Info</th>
+                <th class="py-3 px-4">Requested Book</th>
+                <th class="py-3 px-3 text-center">Request Date & Duration</th>
+                <th class="py-3 px-4 text-center">Admin Action</th>
+              </tr>
+            </thead>
+            <tbody id="pending-requests-tbody" class="divide-y text-xs"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Active Borrowing Records & Overdue Penalties + Export CSV Button -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+              <i class="fa-solid fa-address-book text-indigo-600"></i> Active Borrow Records & Accumulated Fines
+            </h3>
+            <p class="text-xs text-slate-400">Overdue fine rate: <strong>₱10.00 / day</strong> after deadline.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button id="export-csv-btn" onclick="exportBorrowingRecordsToCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+              <i class="fa-solid fa-file-excel"></i> Export CSV
+            </button>
+            <span id="records-count-badge" class="text-xs bg-indigo-50 text-indigo-700 px-2.5 py-0.5 rounded-full font-bold">0 Records</span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b text-[11px] font-bold text-slate-500 uppercase">
+                <th class="py-3 px-4">Student ID & Email</th>
+                <th class="py-3 px-4">Book Title</th>
+                <th class="py-3 px-3 text-center">Status</th>
+                <th class="py-3 px-3 text-center">Due Date & Fine</th>
+                <th class="py-3 px-4 text-center">Actions & Email Reminders</th>
+              </tr>
+            </thead>
+            <tbody id="all-records-tbody" class="divide-y text-xs"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Archived History -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 space-y-4">
+        <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+          <i class="fa-solid fa-box-archive text-slate-600"></i> Archived History (>24 Hours)
+        </h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b text-[11px] font-bold text-slate-500 uppercase">
+                <th class="py-3 px-4">Student ID & Email</th>
+                <th class="py-3 px-4">Book Title</th>
+                <th class="py-3 px-3 text-center">Status</th>
+                <th class="py-3 px-3 text-center">Date</th>
+                <th class="py-3 px-4 text-center">Clean Action</th>
+              </tr>
+            </thead>
+            <tbody id="archived-records-tbody" class="divide-y text-xs"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- PAGE 3: Students Directory & Admin Password Resets -->
+    <section id="page-students" class="admin-page hidden space-y-8">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-5 space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-slate-800">Registered Students & Staff Directory</h3>
+          <span id="student-count-badge" class="text-xs bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-0.5 rounded-full font-bold">0 Accounts</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b text-[11px] font-bold text-slate-500 uppercase">
+                <th class="py-3 px-4">Student ID</th>
+                <th class="py-3 px-4">User Account Details</th>
+                <th class="py-3 px-3 text-center">Status & Role</th>
+                <th class="py-3 px-4 text-center">Directory Actions & Reset Link</th>
+              </tr>
+            </thead>
+            <tbody id="student-list-tbody" class="divide-y text-xs"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
